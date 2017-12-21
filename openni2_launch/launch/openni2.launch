@@ -18,7 +18,7 @@
             See camera_info_manager docs for calibration URL details." />
   <arg name="depth_camera_info_url" default="" />
 
-  <arg name="depth_registration" default="false"
+  <arg name="depth_registration" default="true"
        doc="Hardware depth registration" />
 
   <!-- Driver parameters -->

@@ -260,9 +260,8 @@ void OpenNI2Device::startIRStream()
 {
   boost::shared_ptr<openni::VideoStream> stream = getIRVideoStream();
 
-  if (stream)
-  {
-    stream->setMirroringEnabled(false);
+  if(stream){
+    stream->setMirroringEnabled(true);
     stream->start();
     stream->addNewFrameListener(ir_frame_listener.get());
     ir_video_started_ = true;
@@ -276,7 +275,7 @@ void OpenNI2Device::startColorStream()
 
   if (stream)
   {
-    stream->setMirroringEnabled(false);
+    stream->setMirroringEnabled(true);
     stream->start();
     stream->addNewFrameListener(color_frame_listener.get());
     color_video_started_ = true;
@@ -288,7 +287,7 @@ void OpenNI2Device::startDepthStream()
 
   if (stream)
   {
-    stream->setMirroringEnabled(false);
+    stream->setMirroringEnabled(true);
     stream->start();
     stream->addNewFrameListener(depth_frame_listener.get());
     depth_video_started_ = true;
@@ -541,30 +540,42 @@ void OpenNI2Device::setAutoExposure(bool enable) throw (OpenNI2Exception)
 
   if (stream)
   {
-    openni::CameraSettings* camera_seeting = stream->getCameraSettings();
-    if (camera_seeting)
+    openni::CameraSettings* camera_setting = stream->getCameraSettings();
+    if (camera_setting)
     {
-      const openni::Status rc = camera_seeting->setAutoExposureEnabled(enable);
+      const openni::Status rc = camera_setting->setAutoExposureEnabled(enable);
       if (rc != openni::STATUS_OK)
         THROW_OPENNI_EXCEPTION("Couldn't set auto exposure: \n%s\n", openni::OpenNI::getExtendedError());
     }
 
   }
 }
+
 void OpenNI2Device::setAutoWhiteBalance(bool enable) throw (OpenNI2Exception)
 {
   boost::shared_ptr<openni::VideoStream> stream = getColorVideoStream();
 
   if (stream)
   {
-    openni::CameraSettings* camera_seeting = stream->getCameraSettings();
-    if (camera_seeting)
+    openni::CameraSettings* camera_setting = stream->getCameraSettings();
+    if (camera_setting)
     {
-      const openni::Status rc = camera_seeting->setAutoWhiteBalanceEnabled(enable);
+      const openni::Status rc = camera_setting->setAutoWhiteBalanceEnabled(enable);
       if (rc != openni::STATUS_OK)
         THROW_OPENNI_EXCEPTION("Couldn't set auto white balance: \n%s\n", openni::OpenNI::getExtendedError());
     }
+  }
+}
 
+void OpenNI2Device::setCloseRange(bool enable) throw (OpenNI2Exception)
+{
+  boost::shared_ptr<openni::VideoStream> stream = getDepthVideoStream();
+
+  if (stream)
+  {
+    const openni::Status rc = stream->setProperty(0x1080F003, enable);
+    if (rc != openni::STATUS_OK)
+      THROW_OPENNI_EXCEPTION("Couldn't set close range: \n%s\n", openni::OpenNI::getExtendedError());
   }
 }
 
@@ -581,6 +592,18 @@ void OpenNI2Device::setExposure(int exposure) throw (OpenNI2Exception)
       if (rc != openni::STATUS_OK)
         THROW_OPENNI_EXCEPTION("Couldn't set exposure: \n%s\n", openni::OpenNI::getExtendedError());
     }
+  }
+}
+
+void OpenNI2Device::setMirroring(bool enable) throw (OpenNI2Exception)
+{
+  boost::shared_ptr<openni::VideoStream> stream = getColorVideoStream();
+
+  if (stream)
+  {
+      const openni::Status rc = stream->setMirroringEnabled(enable);
+      if (rc != openni::STATUS_OK)
+        THROW_OPENNI_EXCEPTION("Couldn't set mirroring: \n%s\n", openni::OpenNI::getExtendedError());
   }
 }
 
@@ -611,6 +634,35 @@ bool OpenNI2Device::getAutoWhiteBalance() const
     openni::CameraSettings* camera_seeting = stream->getCameraSettings();
     if (camera_seeting)
       ret = camera_seeting->getAutoWhiteBalanceEnabled();
+  }
+
+  return ret;
+}
+
+bool OpenNI2Device::getCloseRange() const
+{
+  bool ret = false;
+
+  boost::shared_ptr<openni::VideoStream> stream = getDepthVideoStream();
+
+  if (stream)
+  {
+    stream->getProperty(0x1080F003, &ret);
+    //std::cout<<"close range: " <<ret<<std::endl;
+  }
+
+  return ret;
+}
+
+bool OpenNI2Device::getMirroring() const
+{
+  bool ret = false;
+
+  boost::shared_ptr<openni::VideoStream> stream = getColorVideoStream();
+
+  if (stream)
+  {
+    ret = stream->getMirroringEnabled();
   }
 
   return ret;
